@@ -1,0 +1,2 @@
+ALTER TABLE `users`
+	ADD COLUMN `jail` INT(16) NOT NULL DEFAULT '0';
