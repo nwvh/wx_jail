@@ -17,13 +17,29 @@ lib.registerContext({
                 })
                 if jail then
                     if jail[2] <= wx.MaxTime then
-                        TriggerServerEvent('wx_jail:sendToJail',jail[1],jail[2],jail[3])
-                        lib.notify({
-                            title = "Success",
-                            description = 'Player has been imprisoned for '..jail[2]..' minutes due to '..jail[3],
-                            type = 'info',
-                            position = 'top'
-                        })
+                        ESX.TriggerServerCallback('wx_jail:checkJailUser', function(jailed)
+                            for k, v in pairs(jailed) do
+                                local serverId = GetPlayerServerIdFromIdentifier(v.identifier)
+                                if serverId == jail[1] then
+                                    lib.notify({
+                                        title = Locale["Error"],
+                                        description = ('L\'utente è già in carcere!'),
+                                        type = 'error',
+                                        position = 'top'
+                                    })
+                                    break
+                                else
+                                    TriggerServerEvent('wx_jail:sendToJail', jail[1], jail[2], jail[3])
+                                    lib.notify({
+                                        title = "Success",
+                                        description = 'Player has been imprisoned for ' ..
+                                            jail[2] .. ' minutes due to ' .. jail[3],
+                                        type = 'info',
+                                        position = 'top'
+                                    })
+                                end
+                            end
+                        end)
                     else
                         lib.notify({
                             title = "Error",
@@ -166,6 +182,42 @@ lib.registerContext({
     }
 })
 
+function GetPlayerServerIdFromIdentifier(identifier)
+    local playerServerId = nil
+
+    for _, player in ipairs(GetActivePlayers()) do
+        local playerId = GetPlayerServerId(player)
+
+        if playerId and playerId > 0 then
+            local playerIdentifier = ESX.GetPlayerData(player).identifier
+
+            -- here we slip the identifiers so they are individual
+            local identifiers = splitIdentifiers(identifier)
+
+            -- here we check each identifier coz why not
+            for _, id in ipairs(identifiers) do
+                if playerIdentifier == id then
+                    playerServerId = playerId
+                    break
+                end
+            end
+            --lol not working, quick fix made at line 240 no worries 👍
+            if playerServerId then
+                break
+            end
+        end
+    end
+
+    return playerServerId
+end
+
+function splitIdentifiers(identifierrec)
+    local identifiers = {}
+    for identifier in string.gmatch(identifierrec, "[^,]+") do
+        table.insert(identifiers, identifier)
+    end
+    return identifiers
+end
 
 RegisterCommand(wx.Command,function ()
 	if not wx.Jobs[PlayerData["job"].name] then return end
@@ -189,13 +241,30 @@ RegisterCommand('adminjail',function ()
                     })
                     if jail then
                         if jail[2] <= wx.MaxTime then
-                            TriggerServerEvent('wx_jail:adminJail',jail[1],jail[2],jail[3],jail[4])
-                            lib.notify({
-                                title = Locale["Success"],
-                                description = 'Player has been jailed for '..jail[2]..' minutes. Reason: '..jail[3],
-                                type = 'info',
-                                position = 'top'
-                            })
+                            ESX.TriggerServerCallback('wx_jail:checkJailUser', function(jailed)
+                                for k, v in pairs(jailed) do
+                                    local serverId = GetPlayerServerIdFromIdentifier(v.identifier)
+                                    if serverId == jail[1] then
+                                        lib.notify({
+                                            title = Locale["Error"],
+                                            description = ('L\'utente è già in carcere!'),
+                                            type = 'error',
+                                            position = 'top'
+                                        })
+                                        break
+                                    else
+                                        TriggerServerEvent('wx_jail:adminJail', jail[1], jail[2], jail[3], jail[4])
+                                        lib.notify({
+                                            title = Locale["Success"],
+                                            description = 'Il giocatore è stato incarcerato per ' ..
+                                                jail[2] .. ' minuti. Motivo: ' .. jail
+                                                [3],
+                                            type = 'info',
+                                            position = 'top'
+                                        })
+                                    end
+                                end
+                            end)
                         else
                             lib.notify({
                                 title = Locale["Error"],
