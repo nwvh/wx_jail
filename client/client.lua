@@ -11,14 +11,14 @@ Citizen.CreateThread(function()
 end)
 
 -- ## Check if player is in jail when he selects character ## --
+-- ## Fix on correct jailtime display
 RegisterNetEvent("esx:playerLoaded")
 AddEventHandler("esx:playerLoaded", function()
 	Citizen.Wait(15000)
 	ESX.TriggerServerCallback("wx_jail:retrieveJailTime", function(inJail, time)
 		if inJail then
-
-			jailTime = jailTime
-			SetEntityCoords(PlayerPedId(), wx.Locations.JailEnter[ math.random( #wx.Locations.JailEnter ) ])
+			jailTime = time --Time display quickfix :D
+			SetEntityCoords(PlayerPedId(), wx.Locations.JailEnter[math.random(#wx.Locations.JailEnter)])
 
 			lib.notify({
 				title = Locale["JailTitle"],
@@ -274,3 +274,26 @@ function TimeLeft()
 	end)
 
 end
+
+--same usage as playerLoaded
+AddEventHandler('onResourceStart', function(resourceName)
+	if (GetCurrentResourceName() ~= resourceName) then
+		return
+	end
+	Citizen.Wait(2000)
+	ESX.TriggerServerCallback("wx_jail:retrieveJailTime", function(inJail, time)
+		if inJail then
+			jailTime = time --Time display quickfix :D
+			SetEntityCoords(PlayerPedId(), wx.Locations.JailEnter[math.random(#wx.Locations.JailEnter)])
+
+			lib.notify({
+				title = Locale["JailTitle"],
+				description = Locale["Disconnected"],
+				type = 'error',
+				position = 'top'
+			})
+			TimeLeft()
+		end
+	end)
+end)
+
