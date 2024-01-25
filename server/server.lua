@@ -361,6 +361,21 @@ function GetRPName(playerId, data)
 	end)
 end
 
+ESX.RegisterServerCallback("wx_jail:checkJailUser", function(source, cb)
+	local jailedPersons = {}
+
+	MySQL.Async.fetchAll("SELECT firstname, lastname, jail, identifier FROM users WHERE jail > @jail", { ["@jail"] = 0 },
+		function(result)
+			for i = 1, #result, 1 do
+				table.insert(jailedPersons,
+					{
+						identifier = result[i].identifier
+					})
+			end
+			cb(jailedPersons)
+		end)
+end)
+
 ESX.RegisterServerCallback("wx_jail:retrieveJailedPlayers", function(source, cb)
 	
 	local jailedPersons = {}
