@@ -7,7 +7,10 @@ Citizen.CreateThread(function()
 	while ESX.GetPlayerData() == nil do
 		Citizen.Wait(150)
 	end
-	PlayerData = ESX.GetPlayerData()
+	while true do
+		Wait(2500)
+		PlayerData = ESX.GetPlayerData() or {}
+	end
 end)
 
 -- ## Check if player is in jail when he selects character ## --
